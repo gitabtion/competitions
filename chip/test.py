@@ -24,7 +24,7 @@
     author: abtion
     email: abtion@outlook.com
 """
-from chip.chip_dataset import get_loader
+from chip import get_loader
 from chip.config import CONFIG
 from bert_serving.client import BertClient
 import numpy as np
@@ -32,7 +32,7 @@ import torch
 
 
 def test_entry():
-    from chip.bidaf_model import BiDAFModel
+    from chip import BiDAFModel
     from config import FLAGS
     model = BiDAFModel().to(FLAGS.device)
     model.load_state_dict(torch.load(CONFIG.checkpiont_file))
@@ -61,4 +61,30 @@ def test_entry():
 
 
 def eval_entry():
-    pass
+    from chip import BiDAFModel
+    from config import FLAGS
+    import pandas as pd
+    model = BiDAFModel().to(FLAGS.device)
+    model.load_state_dict(torch.load(CONFIG.checkpiont_file))
+    model.eval()
+    bc = BertClient()
+
+    data = pd.read_csv(CONFIG.eval_file)
+    text1s = [_data for _data in list(data.iloc[:, 1])]
+    text2s = [_data for _data in list(data.iloc[:, 2])]
+    encoded_text1s = torch.tensor(bc.encode(text1s)).to(FLAGS.device)
+    encoded_text2s = torch.tensor(bc.encode(text2s)).to(FLAGS.device)
+    batch_size = 500
+    num = len(text1s) // batch_size
+    preds = model(encoded_text1s[:batch_size], encoded_text2s[:batch_size])
+    labels = torch.argmax(preds, dim=1).cpu().data.numpy()
+    for i in range(1, num):
+        _preds = model(encoded_text1s[i * batch_size:(i + 1) * batch_size],
+                       encoded_text2s[i * batch_size:(i + 1) * batch_size])
+        _labels = torch.argmax(preds, dim=1).cpu().data.numpy()
+        labels = np.append(labels, _labels)
+    print(labels.shape[0])
+    data = data.drop(['question1', 'question2', 'category'], axis=1)
+    data = data.astype(int)
+    data.to_csv(CONFIG.submit_file, index=False)
+    print("eval done!")

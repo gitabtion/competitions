@@ -1,47 +1,24 @@
-"""
-              ┏┓      ┏┓ + +
-             ┏┛┻━━━━━━┛┻┓ + +
-             ┃          ┃
-             ┃    ━     ┃ ++ + + +
-            ██████━██████ +
-             ┃          ┃ +
-             ┃    ┻     ┃
-             ┃          ┃ + +
-             ┗━┓      ┏━┛
-               ┃      ┃
-               ┃      ┃ + + + +
-               ┃      ┃   
-               ┃      ┃ + 　　　　神兽保佑,loss->0
-               ┃      ┃        
-               ┃      ┃  +
-               ┃      ┗━━━━━┓ + +
-               ┃            ┣┓
-               ┃            ┏┛
-               ┗━┓┓┏━━━━┳┓┏━┛ + + + +
-                 ┃┫┫    ┃┫┫
-                 ┗┻┛    ┗┻┛ + + + +
-
-    author: abtion
-    email: abtion@outlook.com
-"""
 from absl import app
 
 
 def main(_):
     from config import FLAGS
     if FLAGS.competition == 'chip':
+        from chip.preproc import preproc_entry
+        from chip.train import train_entry
+        from chip.test import test_entry
+        from chip.test import eval_entry
+
         if FLAGS.mode == 'data':
-            from chip.preproc import preproc_entry
             preproc_entry()
-        if FLAGS.mode == 'train':
-            from chip.train import train_entry
+        elif FLAGS.mode == 'train':
             train_entry()
-        if FLAGS.mode == 'test':
-            from chip.test import test_entry
+        elif FLAGS.mode == 'test':
             test_entry()
-        if FLAGS.mode == 'eval':
-            from chip.test import eval_entry
+        elif FLAGS.mode == 'eval':
             eval_entry()
+        else:
+            raise AttributeError("unknown mode")
 
 
 if __name__ == '__main__':

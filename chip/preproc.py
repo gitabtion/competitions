@@ -34,7 +34,6 @@ import pandas as pd
 def preproc_entry():
     path = os.path.join('chip', 'data', 'data.csv')
     data = pd.read_csv(path)
-    data = data.dropna(axis=0, how='any')
 
     test_idxs = random.sample(list(range(len(data))), CONFIG.testset_len)
     train_idxs = [i for i in range(len(data)) if i not in test_idxs]
